@@ -342,7 +342,7 @@ elseif($mybb->settings['recenttopics_forums'] != null && $mybb->settings['recent
 			$subject = $threadRow['subject'];
 		}
 		$subject = htmlspecialchars_uni($subject);
-		$subject_link = get_thread_link($threadRow['tid']);
+		$subject_link = get_thread_link($threadRow['tid']).'&action=lastpost';
 		$postdate = my_date($mybb->settings['dateformat'], $threadRow['lastpost']);
 		$posttime = my_date($mybb->settings['timeformat'], $threadRow['lastpost']);
 		$post_date = $postdate."-".$posttime;
