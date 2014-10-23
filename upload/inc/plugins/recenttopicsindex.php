@@ -40,9 +40,9 @@ function recenttopicsindex_info()
 		"website"		=> "http://www.mybbhacks.com",
 		"author"		=> "vbgamer45 (Edited by Matslom & GiboneKPL from mybboard.pl)",
 		"authorsite"		=> "http://www.mybbhacks.com",
-		"version"		=> "1.1.2",
+		"version"		=> "1.1.5",
 		"guid" 			=> "*",
-		"compatibility"	=> "16*"
+		"compatibility"	=> "16*,18*"
 		);
 }
 
@@ -104,7 +104,7 @@ function recenttopicsindex_install()
 		"title"			=> $db->escape_string($lang->sett_4),
 		"description"	=> $db->escape_string($lang->sett_4_desc),
 		"optionscode"	=> "text", 
-		"value"			=> "./images/default_avatar.gif", 
+		"value"			=> "./images/default_avatar.png", 
 		"disporder"		=> $disporder++,
 		"gid"			=> $gid
 	);
