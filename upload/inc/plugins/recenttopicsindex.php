@@ -1,17 +1,10 @@
 <?php
 /*
-Recent Topics
-by: vbgamer45
-http://www.mybbhacks.com
-Copyright 2011  MyBBHacks.com
+ * Recent Topics Index Page PLUS by Matslom [matslom.pl] & GiboneKPL
+ * License: GNU GENERAL PUBLIC LICENSE -> http://www.gnu.org/licenses/gpl-3.0.txt
+ * Github: https://github.com/Matslom/Recent-Topic-Index
+ */
 
-############################################
-License Information:
-
-Links to http://www.mybbhacks.com must remain unless
-branding free option is purchased.
-#############################################
-*/
 if(!defined("IN_MYBB"))
 {
 	die("This file cannot be accessed directly.");
@@ -19,30 +12,20 @@ if(!defined("IN_MYBB"))
 
 $plugins->add_hook("index_end", "recenttopicsindex_show");
 
-if(my_strpos($_SERVER['PHP_SELF'], 'index.php'))
-{
-    global $templatelist;
-    if(isset($templatelist))
-    {
-        $templatelist .= ',';
-    }
-	$templatelist .= 'recenttopics,recenttopics_row';
-}
-
 function recenttopicsindex_info()
 {
 	global $db, $mybb, $lang;
 	$lang->load("recenttopics");
 	
 	return array(
-		"name"		=> $db->escape_string($lang->name),
-		"description"		=> $db->escape_string($lang->desc),
-		"website"		=> "http://www.mybbhacks.com",
-		"author"		=> "vbgamer45 (Edited by Matslom & GiboneKPL from mybboard.pl)",
-		"authorsite"		=> "http://www.mybbhacks.com",
-		"version"		=> "1.1.5",
+		"name"			=> $db->escape_string($lang->name),
+		"description"	=> $db->escape_string($lang->desc),
+		"website"		=> "http://www.mybboard.pl",
+		"author"		=> "Matslom & GiboneKPL",
+		"authorsite"	=> "matslom.pl",
+		"version"		=> "1.1.3",
 		"guid" 			=> "*",
-		"compatibility"	=> "16*,18*"
+		"compatibility"	=> "18*"
 		);
 }
 
@@ -52,116 +35,86 @@ function recenttopicsindex_install()
 	global $mybb, $db, $lang;
 	$lang->load("recenttopics");
 
-	$settinggroups = array(
-		"name" 			=> "recenttopics", 
-		"title" 		=> $db->escape_string($lang->name),
-		"description" 	=> $db->escape_string($lang->settgroup_desc),
-		"disporder" 	=> 100, 
-		"isdefault" 	=> 0
-	);
+	$settingGroupId = $db->insert_query('settinggroups', [
+        'name'        => 'recenttopics',
+        'title'       => $db->escape_string($lang->name),
+        'description' => $db->escape_string($lang->settgroup_desc),
+    ]);
+    
 	$gid = $db->insert_query("settinggroups", $settinggroups);
 	$disporder = 0;
 
-	$setting = array(
-		"sid"			=> NULL,
-		"name"			=> "recenttopics_limit",
-		"title"			=> $db->escape_string($lang->sett_1),
-		"description"	=> $db->escape_string($lang->sett_1_desc),
-		"optionscode"	=> "text", 
-		"value"			=> "5",
-		"disporder"		=> $disporder++,
-		"gid"			=> $gid
-	);
-	$db->insert_query("settings", $setting);
-	
-	$setting = array(
-		"sid"			=> NULL,
-		"name"			=> "recenttopics_forums",
-		"title"			=> $db->escape_string($lang->sett_2),
-		"description"	=> $db->escape_string($lang->sett_2_desc),
-		"optionscode"	=> "text", 
-		"value"			=> null,
-		"disporder"		=> $disporder++,
-		"gid"			=> $gid
-	);
-	$db->insert_query("settings", $setting);
+	$settings = [
+		[
+			'name'        => 'recenttopics_limit',
+            'title'       => $lang->sett_1,
+            'description' => $lang->sett_1_desc,
+            'optionscode' => 'text',
+            'value'       => '5',
+		],
+		[
+			'name'        => 'recenttopics_forums',
+            'title'       => $lang->sett_2,
+            'description' => $lang->sett_2_desc,
+            'optionscode' => 'text',
+            'value'       => '',
+		],
+		[
+			'name'        => 'recenttopics_awatar',
+            'title'       => $lang->sett_3,
+            'description' => $lang->sett_3_desc,
+            'optionscode' => 'yesno',
+            'value'       => '1',
+		],
+		[
+			'name'        => 'recenttopics_default_a',
+            'title'       => $lang->sett_4,
+            'description' => $lang->sett_4_desc,
+            'optionscode' => 'text',
+            'value'       => './images/default_avatar.png',
+		],
+		[
+			'name'        => 'recenttopics_skr',
+            'title'       => $lang->sett_5,
+            'description' => $lang->sett_5_desc,
+            'optionscode' => 'yesno',
+            'value'       => '1',
+		],
+		[
+			'name'        => 'recenttopics_skr2',
+            'title'       => $lang->sett_6,
+            'description' => $lang->sett_6_desc,
+            'optionscode' => 'text',
+            'value'       => '35',
+		],
+		[
+			'name'        => 'recenttopics_prefix',
+            'title'       => $lang->sett_7,
+            'description' => $lang->sett_7_desc,
+            'optionscode' => 'yesno',
+            'value'       => '1',
+		],
+		[
+			'name'        => 'recenttopics_forums2',
+            'title'       => $lang->sett_8,
+            'description' => $lang->sett_8_desc,
+            'optionscode' => 'yesno',
+            'value'       => '1',
+		],
+	];
+		
+	$i = 1;
+	foreach ($settings as &$row) {
+        $row['gid']         = $settingGroupId;
+        $row['title']       = $db->escape_string($row['title']);
+        $row['description'] = $db->escape_string($row['description']);
+        $row['disporder']   = $i++;
+    }
 
-	$setting = array(
-		"sid"			=> NULL,
-		"name"			=> "recenttopics_awatar",
-		"title"			=> $db->escape_string($lang->sett_3),
-		"description"	=> $db->escape_string($lang->sett_3_desc),
-		"optionscode"	=> "yesno", 
-		"value"			=> "1",
-		"disporder"		=> $disporder++,
-		"gid"			=> $gid
-	);
-	$db->insert_query("settings", $setting);
-	
-	$setting = array(
-		"sid"			=> NULL,
-		"name"			=> "recenttopics_default_a",
-		"title"			=> $db->escape_string($lang->sett_4),
-		"description"	=> $db->escape_string($lang->sett_4_desc),
-		"optionscode"	=> "text", 
-		"value"			=> "./images/default_avatar.png", 
-		"disporder"		=> $disporder++,
-		"gid"			=> $gid
-	);
-	$db->insert_query("settings", $setting);
-	
-	$setting = array(
-		"sid"			=> NULL,
-		"name"			=> "recenttopics_skr",
-		"title"			=> $db->escape_string($lang->sett_5),
-		"description"	=> $db->escape_string($lang->sett_5_desc),
-		"optionscode"	=> "yesno",
-		"value"			=> "1",
-		"disporder"		=> $disporder++,
-		"gid"			=> $gid
-	);
-	$db->insert_query("settings", $setting);
-	
-	$setting = array(
-		"sid"			=> NULL,
-		"name"			=> "recenttopics_skr2",
-		"title"			=> $db->escape_string($lang->sett_6),
-		"description"	=> $db->escape_string($lang->sett_6_desc),
-		"optionscode"	=> "text",
-		"value"			=> "35",
-		"disporder"		=> $disporder++,
-		"gid"			=> $gid
-	);
-	$db->insert_query("settings", $setting);
-	
-	$setting = array(
-		"sid"			=> NULL,
-		"name"			=> "recenttopics_prefix",
-		"title"			=> $db->escape_string($lang->sett_7),
-		"description"	=> $db->escape_string($lang->sett_7_desc),
-		"optionscode"	=> "yesno",
-		"value"			=> "1",
-		"disporder"		=> $disporder++,
-		"gid"			=> $gid
-	);
-	$db->insert_query("settings", $setting);
-	
-	$setting = array(
-		"sid"			=> NULL,
-		"name"			=> "recenttopics_forums2",
-		"title"			=> $db->escape_string($lang->sett_8),
-		"description"	=> $db->escape_string($lang->sett_8_desc),
-		"optionscode"	=> "yesno",
-		"value"			=> "1",
-		"disporder"		=> $disporder++,
-		"gid"			=> $gid
-	);
-	$db->insert_query("settings", $setting);
-	
+    $db->insert_query_multiple('settings', $settings);
 	rebuild_settings();
 
 	$template = array(
-		"tid" 			=> "NULL",
 		"title" 		=> "recenttopics",
 		"template"		=> $db->escape_string('<table border="0" cellspacing="{$theme[\'borderwidth\']}" cellpadding="{$theme[\'tablespace\']}" class="tborder" style="margin-top:5px;">
 <thead>
@@ -174,21 +127,20 @@ function recenttopicsindex_install()
 {$recenttopics_row}
 </table>
 <br />'),
-		"sid" 			=> "-1", 
+		"sid" 			=> -1, 
 		);
 	$db->insert_query("templates", $template);
 		
 	$template = array(
-		"tid" 			=> "NULL",
 		"title" 		=> "recenttopics_row",
 		"template"		=> $db->escape_string('<tr> 
 <td class="trow1 smalltext">
-{$avatar}
-{$prefix} <a href="{$subject_link}">{$subject}</a> {$in_forums} <a href="{$forum_link}">{$forum_name}</a><br />
-{$username} {$post_date}
+{$topicIndex[\'avatar\']}
+{$topicIndex[\'prefix\']} <a href="{$topicIndex[\'subject_link\']}">{$topicIndex[\'subject\']}</a> {$topicIndex[\'in_forums\']} <a href="{$topicIndex[\'forum_link\']}">{$topicIndex[\'forum_name\']}</a><br />
+{$topicIndex[\'username\']} {$topicIndex[\'post_date\']}
 </td>
 </tr>'),
-		"sid" 			=> "-1", 
+		"sid" 			=> -1, 
 		);
 	$db->insert_query("templates", $template);
 
@@ -196,8 +148,7 @@ function recenttopicsindex_install()
 
 function recenttopicsindex_is_installed()
 {
-	global $mybb, $db, $lang;
-	$lang->load("recenttopics");
+	global $mybb, $db;
 	
 	$q = $db->simple_select('settinggroups', '*', 'name=\'recenttopics\'');
 	$group = $db->fetch_array($q);
@@ -208,8 +159,7 @@ function recenttopicsindex_is_installed()
 
 function recenttopicsindex_uninstall()
 {
-	global $mybb, $db, $lang;
-	$lang->load("recenttopics");
+	global $mybb, $db;
 	
 	$db->delete_query('settings', 'name LIKE \'%recenttopics_%\'');
 	$db->delete_query("settinggroups", "name = 'recenttopics'");
@@ -232,10 +182,7 @@ function recenttopicsindex_show()
 	global $db, $mybb, $page, $recenttopics, $theme, $permissioncache, $templates, $theme, $lang;
 	$lang->load("recenttopics");
 	require_once MYBB_ROOT."inc/functions_search.php";
-
-	// Run the Query
 	
-    // !!! FIX private forum exposure!!!
 	if( !is_array($permissioncache) ||(is_array($permissioncache) && ((count($permissioncache)==1) && (isset($permissioncache['-1']) && ($permissioncache['-1'] = "1"))))) 
 	{
 		$permissioncache = forum_permissions();
@@ -310,29 +257,29 @@ elseif($mybb->settings['recenttopics_forums'] != null && $mybb->settings['recent
 		}
 		if($threadRow['prefix'] != '')
 		{
-			$prefix = $threadRow['displaystyle'];
+			$topicIndex['prefix'] = $threadRow['displaystyle'];
 		}
 		else
 		{
-			$prefix = '';
+			$topicIndex['prefix'] = '';
 		}
 		$username_link = get_profile_link($threadRow['uid']);
 		if($mybb->settings['recenttopics_awatar'] == '1')
 		{	
-		$avatar = "<a href=\"".$username_link."\"><img src=\"".$threadRow['avatar']."\" alt=\"avatar\" style=\"float: left;margin-right: 5px\" class=\"favimg\" width=\"35px\" height=\"35px\"/></a>"; 
+		$topicIndex['avatar'] = "<a href=\"".$username_link."\"><img src=\"".$threadRow['avatar']."\" alt=\"avatar\" style=\"float: left;margin-right: 5px\" class=\"favimg\" width=\"35px\" height=\"35px\"/></a>"; 
 		}
 		else
 		{
-			$avatar = '';	
+			$topicIndex['avatar'] = '';	
 		}
 		if($mybb->settings['recenttopics_forums2'] == '1')
 		{
-			$in_forums = $db->escape_string($lang->forums);
-			$forum_name = $threadRow['name'];
-			$forum_link = get_forum_link($threadRow['fid']);
+			$topicIndex['in_forums'] = $db->escape_string($lang->forums);
+			$topicIndex['forum_name'] = $threadRow['name'];
+			$topicIndex['forum_link'] = get_forum_link($threadRow['fid']);
 		}
 		$username = format_name($threadRow['username'], $threadRow['usergroup'], $threadRow['displaygroup']);
-        $username = build_profile_link($username, $threadRow['uid']);
+        $topicIndex['username'] = build_profile_link($username, $threadRow['uid']);
 	    if(strlen($threadRow['subject']) > $mybb->settings['recenttopics_skr2'])
         {
 			$subject = substr($threadRow['subject'], 0, $mybb->settings['recenttopics_skr2'])."...";
@@ -341,14 +288,11 @@ elseif($mybb->settings['recenttopics_forums'] != null && $mybb->settings['recent
 		{
 			$subject = $threadRow['subject'];
 		}
-		$subject = htmlspecialchars_uni($subject);
-		$subject_link = get_thread_link($threadRow['tid']).'&action=lastpost';
+		$topicIndex['subject'] = htmlspecialchars_uni($subject);
+		$topicIndex['subject_link'] = get_thread_link($threadRow['tid']).'&action=lastpost';
 		$postdate = my_date($mybb->settings['dateformat'], $threadRow['lastpost']);
 		$posttime = my_date($mybb->settings['timeformat'], $threadRow['lastpost']);
-		$post_date = $postdate."-".$posttime;
-
-      
-		if($mybb->settings['recenttopics_awatar'] == '1' ) { $recenttopics .= $awatar; }
+		$topicIndex['post_date'] = $postdate."-".$posttime;
 		
 		eval('$recenttopics_row .= "'.$templates->get('recenttopics_row').'";');
 	}
