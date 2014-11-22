@@ -23,7 +23,7 @@ function recenttopicsindex_info()
 		"website"		=> "http://www.mybboard.pl",
 		"author"		=> "Matslom & GiboneKPL",
 		"authorsite"	=> "matslom.pl",
-		"version"		=> "1.1.3",
+		"version"		=> "1.1.6",
 		"guid" 			=> "*",
 		"compatibility"	=> "18*"
 		);
